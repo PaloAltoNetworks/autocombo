@@ -20,7 +20,7 @@ class ComboEvaluator:
         pil_logger = logging.getLogger('PIL')
         pil_logger.setLevel(logging.INFO)
 
-        self.property_index_mapping = {}  # {bhr : id}
+        self.property_index_mapping = {}
 
         self.malware_hits_sofar = set()
         self.benign_hits_sofar = set()
@@ -29,14 +29,8 @@ class ComboEvaluator:
         summary_to_return = ['Summary: ']
         if CommonConfig.get_use_selected_combo_file():
             input_combo_file = const.get_selected_combo_file(const.get_generated_combo_file())
-            # # evaluated_combo_file = const.get_selected_combo_evaluation_file()
-            # evaluated_combo_file = const.get_combo_evaluation_file(input_combo_file)
-            # hit_hashes_folder = const.get_eval_combo_evaluation_hit_hashes_folder()
         elif CommonConfig.get_use_sorted_combo_file_for_eval():
             input_combo_file = const.get_sorted_combo_file(const.get_generated_combo_file())
-            # evaluated_combo_file = const.get_combo_evaluation_file(input_combo_file)
-            # # evaluated_combo_file = const.get_sorted_combo_evaluation_file()
-            # hit_hashes_folder = const.get_eval_combo_evaluation_hit_hashes_folder()
         else:
             input_combo_file = const.get_generated_combo_file()
         evaluated_combo_file = const.get_combo_evaluation_file(input_combo_file)
@@ -53,28 +47,22 @@ class ComboEvaluator:
         self.benign_sets = misc.load_property_sets(gt_labels=[0],
                                                    start_date=start_date, end_date=end_date)
         self.logger.info(f'Loaded sets to eval: #malware: {len(self.malware_sets)}, #benign: {len(self.benign_sets)}')
-        # for sha256, bhr_set in self.malware_sets.items():
-        #     print(f'debugging, {sha256}, {bhr_set}')
         self.property_index_mapping = misc.get_property_index_mapping()
 
         with open(input_combo_file) as fh_in, open(evaluated_combo_file, 'w') as fh_out:
             csv_writer = csv.writer(fh_out, delimiter=',')
             all_lns = fh_in.readlines()
             header = [f'gen-{x}' for x in all_lns[0].strip().split(',')]
-            header += ['tp', 'fp', 'tpr', 'fpr', 'TP-sofar', 'FP-sofar',  'TPR-sofar', 'FPR-sofar', 'eval-malware', 'eval-benign']
+            header += ['tp', 'fp', 'tpr', 'fpr', 'TP-sofar', 'FP-sofar',
+                       'TPR-sofar', 'FPR-sofar', 'eval-malware', 'eval-benign']
             csv_writer.writerow(header)
             for ln in all_lns[1:]:
                 one_record = ln.strip().split(',')
                 combo = one_record[0]
                 self.logger.info('Evaluating combo %s', combo)
-                tp_file, fp_file = os.path.join(hit_hashes_folder, f'{combo}.tp'), os.path.join(hit_hashes_folder, f'{combo}.fp')
+                tp_file, fp_file = os.path.join(hit_hashes_folder, f'{combo}.tp'), \
+                                   os.path.join(hit_hashes_folder, f'{combo}.fp')
                 malware_hits, benign_hits = set(), set()
-                # if os.path.exists(tp_file):
-                #     with open(tp_file) as fhtp:
-                #         for lntp in fhtp.readlines():
-                #             malware_hits.add(lntp.strip())
-                # else:
-                # malware_hits = self.get_hit_count(combo, self.malware_integers)
                 malware_hits = self.get_hit_hashes(combo, self.malware_sets)
                 with open(tp_file, 'w') as fh_tp:
                     for sha256 in malware_hits:
@@ -84,7 +72,6 @@ class ComboEvaluator:
                         for lntp in fhtp.readlines():
                             benign_hits.add(lntp.strip())
                 else:
-                    # benign_hits = self.get_hit_count(combo, self.benign_integers)
                     benign_hits = self.get_hit_hashes(combo, self.benign_sets)
                     with open(fp_file, 'w') as fh_fp:
                         for sha256 in benign_hits:
@@ -106,17 +93,10 @@ class ComboEvaluator:
     def get_hit_hashes(self, candidate, sha256_properties):
         candidate = set(candidate.strip().split('-'))
         hit_hashes = set()
-        # self.logger.debug(f'len(sha256_properties): {len(sha256_properties)}')
         for sha256, bhrs in sha256_properties.items():
-            # self.logger.debug(f'candidate: {candidate}, bhrs: {bhrs}')
             if candidate.issubset(bhrs):
                 hit_hashes.add(sha256)
         return hit_hashes
-
-    # def get_hit_count_by_properties(self, property_set_to_check, property_hashes, hit_hashes_already):
-    #     hit_hashes = self.get_hit_hashes(property_set_to_check, property_hashes)
-    #     hit_hashes_already.update(hit_hashes)
-    #     return hit_hashes
 
     def get_hit_count(self, combo, hash_integers):
         full_int = self._get_integer(combo)

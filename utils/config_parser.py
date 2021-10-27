@@ -30,13 +30,6 @@ class CommonConfig:
         return folder
 
     @staticmethod
-    def get_model_preparation_logs_folder():
-        folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
-                                              CommonConfig.CONFIG_PARSER.get('common', 'model_preparation_logs_folder')))
-        os.makedirs(folder, exist_ok=True)
-        return folder
-
-    @staticmethod
     def get_property_lists_folder():
         folder = CommonConfig.CONFIG_PARSER.get('dataset_preparer', 'property_lists_folder')
         os.makedirs(folder, exist_ok=True)

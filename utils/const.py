@@ -140,8 +140,7 @@ def get_generated_combo_folder():
                  f'doPropertySorting-{do_property_sorting}.' \
                  f'seed{CommonConfig.get_random_seed()}'
     elif generation_mode == 'multi_processing':
-        folder = f'{folder}.' \
-                 f'numCores-{CommonConfig.get_num_cores()}'
+        folder = f'{folder}.numCores-{CommonConfig.get_num_cores()}'
 
     os.makedirs(folder, exist_ok=True)
     return folder

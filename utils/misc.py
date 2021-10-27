@@ -92,24 +92,7 @@ def load_property_sets(gt_labels, start_date, end_date):
                 logging.info(f'Loaded property file {property_file}, #hashes: {len(this_sha256_properties)}')
     logging.info(f'Total #hashes to return for gt_labels {gt_labels}: '
                  f'{len(total_sha256_properties)}')
-    # print(f'total_sha256_properties: {total_sha256_properties.keys()}')
     return total_sha256_properties
-
-
-def get_hash_properties_stats_info(hash_property_file):
-    if os.path.exists(hash_property_file):
-        with open(hash_property_file) as fh:
-            contents = json.load(fh)
-            stats = {}
-            for hash, properties in contents.items():
-                for prop in properties:
-                    if prop in stats:
-                        stats[prop] += 1
-                    else:
-                        stats[prop] = 1
-        return f'(num_hashes: {len(contents)}), {stats}'
-    else:
-        return f'File not exist'
 
 
 def get_property_index_mapping():

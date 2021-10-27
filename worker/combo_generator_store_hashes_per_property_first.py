@@ -47,11 +47,6 @@ class ComboGenerator:
         # {combo: [sha256, ...], ...}
         self.hashes_to_hit_more_by_combo = {}
         self.hashes_to_hit_less_by_combo = {}
-        # {comboA: comboB, ...}, ...} meaning that comboA is expanded from comboB,
-        self.parent_combo = {}
-        # {combo: cnt} means how many child combos are being checked that are expanded from this combo
-        # when 'ref_cnt' is 0 we can delete its hashes in self.hashes_to_hit_**_by_combo to save memory.
-        self.combo_ref_cnt = {}
 
         self.do_property_sorting = True
 
@@ -61,8 +56,6 @@ class ComboGenerator:
     def generate_combos(self):
         summary_to_return = ['Summary: ']
         generated_combo_file = const.get_generated_combo_file()
-            # os.path.join(const.get_generated_combo_folder(),
-            #                                 f'generated-combos-store-hashes-per-property-first.csv')
         self.logger.info(f'Starting to generate combo file {generated_combo_file}')
         summary_to_return.append(f'Generated combos are in file {generated_combo_file}')
 
@@ -202,10 +195,6 @@ class ComboGenerator:
                 self.benign_hit_hashes_sofar.update(fp_hit_hashes)
                 this_benign_hit_count = len(fp_hit_hashes)
 
-
-                # this_malware_hit_count = self.get_hit_count_by_properties(combo, self.property_hashes['malware'], self.malware_hit_hashes_sofar)
-                # this_benign_hit_count = self.get_hit_count_by_properties(combo, self.property_hashes['benign'], self.benign_hit_hashes_sofar)
-
                 ###
                 with open(os.path.join(self.hit_hash_folder, f'{"-".join(sorted(combo))}.tp'), 'w') as fh:
                     for hh in tp_hit_hashes:
@@ -236,19 +225,6 @@ class ComboGenerator:
                 self.pruned_cand_properties[len(combo)].append(set(combo))
         return new_candidates_potential
 
-    def check_and_cleanup_hashes_by_combo(self, child_combo):
-        # free memory
-        parent_combo = self.parent_combo['-'.join(sorted(child_combo))]
-        self.logger.debug(f'record_hashes_to_check_per_combo, to cleanup for combo {child_combo}, '
-                          f'its parent combo is {parent_combo}, '
-                          f'self.combo_ref_cnt[parent_combo]: {self.combo_ref_cnt[parent_combo]}')
-        self.combo_ref_cnt[parent_combo] -= 1
-        del self.parent_combo['-'.join(sorted(child_combo))]
-        if self.combo_ref_cnt[parent_combo] == 0 and parent_combo != 'root':
-            del self.hashes_to_hit_more_by_combo[parent_combo]
-            del self.hashes_to_hit_less_by_combo[parent_combo]
-            self.logger.debug(f'record_hashes_to_check_per_combo, deleted hashes for combo {parent_combo}')
-
     def check_one_candidate_single_process(self, cc):
         # full_int = self._get_integer(cc)
         cc = set(cc)
@@ -275,17 +251,6 @@ class ComboGenerator:
                     hit_hashes = set.intersection(hit_hashes, property_hashes[k])
         return hit_hashes
 
-    def get_hit_count_by_properties(self, property_set_to_check, property_hashes, hit_hashes_already):
-        hit_hashes = self.get_hit_hashes(property_set_to_check, property_hashes)
-        hit_hashes_already.update(hit_hashes)
-        return len(hit_hashes)
-        # hit_count = 0
-        # for sha256, property_set in all_property_sets_to_check.items():
-        #     if self.first_in_second_properties(property_set_to_check, property_set):
-        #         hit_count += 1
-        #         hit_hashes_already.add(sha256)
-        # return hit_count
-
     def get_new_candidates(self, combo, property_id_mapping, property_list):
         cur_candidate = combo[-1]
         cur_id = property_id_mapping[cur_candidate]
@@ -308,15 +273,6 @@ class ComboGenerator:
 
     def first_in_second_properties(self, first_set, second_set):
         return first_set.issubset(second_set)
-
-    # def _get_integer(self, properties):
-    #     ret = 0
-    #     for b in properties:
-    #         # b = misc.get_property_from_combo_property(b)
-    #         if b not in self.property_index_mapping:
-    #             return -1
-    #         ret |= 1 << self.property_index_mapping[b]
-    #     return ret
 
     def _get_property_combo(self, integer):
         ret = []

@@ -22,8 +22,8 @@ class PropertySorter:
         self.logger = logging.getLogger(misc.get_logger_name(__name__))
         self.logger.info('Current logging level: %s', self.logger.getEffectiveLevel())
 
-        self.property_cnt_to_hit_more = {}  # DA : {bhr: cnt}
-        self.property_cnt_to_hit_less = {}  # DA : {bhr: cnt}
+        self.property_cnt_to_hit_more = {}
+        self.property_cnt_to_hit_less = {}
         self.total_cnt_to_hit_more = 0
         self.total_cnt_to_hit_less = 0
         self.all_properties = set()
@@ -43,9 +43,6 @@ class PropertySorter:
             if score >= 0:
                 property_heuristic_score[f'{bhr}'] = {'score': score, 'ratio-more': ratio_more,
                                                       'ratio-less': ratio_less}
-            # except Exception:
-            #     self.logger.info(f'Skip property {bhr} because it is a yara type')
-            #     continue
         sorted_heuristic_score = {k: v for k, v in sorted(property_heuristic_score.items(),
                                                           key=lambda item: item[1]['score'], reverse=True)}
         with open(const.get_all_sorted_property_file(), 'w') as fh:

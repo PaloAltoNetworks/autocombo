@@ -25,10 +25,7 @@ class ComboSelector:
         else:
             self.combo_file_to_select = generated_combo_file
         self.hit_hash_folder = const.get_generated_combo_hit_hashes_folder()
-        # self.hit_hash_folder = const.get_gen_combo_evaluation_hit_hashes_folder()
         self.selected_combo_file = const.get_selected_combo_file(self.combo_file_to_select)
-        # self.ALL_MALWARE = 5117629-30
-        # self.ALL_BENIGN = 717593-30
         self.malware_count = -1
         self.benign_count = -1
 
@@ -51,7 +48,6 @@ class ComboSelector:
             csvwriter = csv.writer(fh_out, delimiter=',')
             all_in_lines = fh_in.readlines()
             header = all_in_lines[0].strip().split(',')
-            #  candidates,malware-this-hit-ratio,benign-this-hit-ratio,malware-this-hit-cnt,benign-this-hit-cnt,time-elapsed,heuristic-score
             csvwriter.writerow(header+['tp-sofar', 'fp-sofar', 'added-score', 'overall-score', 'time-elapsed'])
             for ln in all_in_lines[1:]:
                 record = ln.strip().split(',')
@@ -59,10 +55,6 @@ class ComboSelector:
                 combo_record_dict[combo] = record
                 self.malware_count = int(record[const.ComboColumnAttributes.ALL_MALWARE])
                 self.benign_count = int(record[const.ComboColumnAttributes.ALL_BENIGN])
-                # if self.malware_count < 0 and float(record[1]) > 0:
-                #     self.malware_count = int(int(record[3]) * 100 / float(record[1]))
-                # if self.benign_count < 0 and float(record[2]) > 0:
-                #     self.benign_count = int(int(record[4]) * 100 / float(record[2]))
                 print(f'all_malware: {self.malware_count}, all_benign: {self.benign_count}')
                 correct_tmp, incorrect_tmp = self.get_hits(combo)
                 if correct_tmp is None:
@@ -89,8 +81,6 @@ class ComboSelector:
                                                          self.get_selection_score(added_tp_cnt, added_fp_cnt),
                                                          self.get_selection_score(len(tp_hits_sofar),
                                                                                   len(fp_hits_sofar)),
-                                                         # f'{added_tp_cnt/(added_fp_cnt+1e-07)}',
-                                                         # f'{len(tp_hits_sofar)/(len(fp_hits_sofar)+1e-07)}',
                                                          time.time()-start_time])
                             fh_out.flush()
 
@@ -99,12 +89,11 @@ class ComboSelector:
                                                    len(fp_hits_sofar)*100/(self.benign_count+1e-07),
                                                    self.get_selection_score(added_tp_cnt, added_fp_cnt),
                                                    self.get_selection_score(len(tp_hits_sofar), len(fp_hits_sofar)),
-                                                   # f'{added_tp_cnt/(added_fp_cnt+1e-07)}',
-                                                   # f'{len(tp_hits_sofar)/(len(fp_hits_sofar)+1e-07)}',
                                                    time.time()-start_time])
                         fh_out.flush()
 
-            elif CommonConfig.get_combo_selection_approach() == 'best-remaining':  # choose the one that if added, adds most overall mfibf score from remaining every time
+            elif CommonConfig.get_combo_selection_approach() == 'best-remaining':
+                # choose the one that if added, adds most overall mfibf score from remaining every time
                 start_time = time.time()
                 tp_hits_sofar, fp_hits_sofar = set(), set()
                 remaining_combos = set(sorted_combo_list)
@@ -147,21 +136,13 @@ class ComboSelector:
                                         len(fp_hits_sofar) * 100 / (self.benign_count),
                                         self.get_selection_score(added_tp_cnt, added_fp_cnt),
                                         self.get_selection_score(len(tp_hits_sofar), len(fp_hits_sofar)),
-                                        # f'{added_tp_cnt / (added_fp_cnt+1e-07)}',
-                                        # f'{len(tp_hits_sofar) / (len(fp_hits_sofar)+1e-07)}',
                                         time.time()-start_time])
-                                        # len(tp_hits_sofar), len(fp_hits_sofar),
-                                        # max_heuristic_score, added_tp_cnt, added_fp_cnt])
                     fh_out.flush()
                     remaining_combos.remove(max_combo)
 
         return summary_to_return
 
     def get_selection_score(self, corrects_cnt, incorrects_cnt):
-        # if incorrects_cnt == 0:
-        #     return 1000000 * corrects_cnt
-        # if corrects_cnt == 0:
-        #     return 0.000001 / incorrects_cnt
         if CommonConfig.get_combo_sorting_criteria() == 'mfibf':
             return corrects_cnt / (incorrects_cnt + 1e-07)
         elif CommonConfig.get_combo_sorting_criteria() == 'f05':

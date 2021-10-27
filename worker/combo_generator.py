@@ -36,9 +36,9 @@ class ComboGenerator:
 
         self.property_index_mapping = {}  # {property : id}
         self.sorted_properties = []
-        self.integers_to_hit_more = {}  # {sha256: {DA : []}}
+        self.integers_to_hit_more = {}
         self.min_threshold = -1
-        self.integers_to_hit_less = {}  # {sha256: {DA : []}}
+        self.integers_to_hit_less = {}
         self.max_threshold = -1
         self.min_combo_size = -1
         self.max_combo_size = -1
@@ -47,7 +47,6 @@ class ComboGenerator:
         self.hit_hashes_to_hit_less = set()
         self.start_time = 0
 
-        # self.use_integer_subset = CommonConfig.get_use_integer_subset()
         self.properties_to_hit_more = {}
         self.properties_to_hit_less = {}
         self.pruned_cand_properties = {}
@@ -194,8 +193,8 @@ class ComboGenerator:
                                           f'{(time.time()-start_time) / len(candidates_to_eval)}, '
                                           f'One round of evaluation done. Evaluated candidates: {candidates_to_eval}')
                         new_candidates_potential += \
-                            self.handle_eval_results(candidates_to_eval, result_array, property_id_mapping, property_list,
-                                                     csv_writer, cfp)
+                            self.handle_eval_results(candidates_to_eval, result_array, property_id_mapping,
+                                                     property_list, csv_writer, cfp)
 
                         result_array = self.multi_processing(self.check_candidate_validity, new_candidates_potential)
                         candidates = []
@@ -279,10 +278,10 @@ class ComboGenerator:
                     if not self.record_parent_hashes:
                         tp_hit_hashes = \
                             self.get_hit_hashes(full_int, self.integers_to_hit_more,
-                                               hit_hashes_already = self.hit_hashes_to_hit_more)
+                                                hit_hashes_already=self.hit_hashes_to_hit_more)
                         fp_hit_hashes = \
                             self.get_hit_hashes(full_int, self.integers_to_hit_less,
-                                               hit_hashes_already = self.hit_hashes_to_hit_less)
+                                                hit_hashes_already=self.hit_hashes_to_hit_less)
                         this_hit_cnt_to_hit_more = len(tp_hit_hashes)
                         this_hit_cnt_to_hit_less = len(fp_hit_hashes)
                     else:
@@ -293,23 +292,26 @@ class ComboGenerator:
                                           f'#hashes_to_hit_less: {len(self.hashes_to_hit_less_by_combo[parent_combo])}')
                         tp_hit_hashes = \
                             self.get_hit_hashes(full_int, self.integers_to_hit_more,
-                                               hit_hashes_already = self.hit_hashes_to_hit_more,
+                                               hit_hashes_already=self.hit_hashes_to_hit_more,
                                                hashes_to_check_by_combo=self.hashes_to_hit_more_by_combo[parent_combo])
                         fp_hit_hashes = \
                             self.get_hit_hashes(full_int, self.integers_to_hit_less,
-                                               hit_hashes_already = self.hit_hashes_to_hit_less,
+                                               hit_hashes_already=self.hit_hashes_to_hit_less,
                                                hashes_to_check_by_combo=self.hashes_to_hit_less_by_combo[parent_combo])
                         this_hit_cnt_to_hit_more = len(tp_hit_hashes)
                         this_hit_cnt_to_hit_less = len(fp_hit_hashes)
                         self.check_and_cleanup_hashes_by_combo(combo)
-                    self.logger.debug(f'this_hit_cnt_to_hit_more: {this_hit_cnt_to_hit_more}, this_hit_cnt_to_hit_less: {this_hit_cnt_to_hit_less}')
+                    self.logger.debug(f'this_hit_cnt_to_hit_more: {this_hit_cnt_to_hit_more}, '
+                                      f'this_hit_cnt_to_hit_less: {this_hit_cnt_to_hit_less}')
                     total_cnt_to_hit_more = len(self.integers_to_hit_more)
                     total_cnt_to_hit_less = len(self.integers_to_hit_less)
                 else:
                     combo = set(combo)
                     self.pruned_cand_properties[len(combo)].append(combo)
-                    tp_hit_hashes = self.get_hit_hashes_by_properties(combo, self.properties_to_hit_more, self.hit_hashes_to_hit_more)
-                    fp_hit_hashes = self.get_hit_hashes_by_properties(combo, self.properties_to_hit_less, self.hit_hashes_to_hit_less)
+                    tp_hit_hashes = self.get_hit_hashes_by_properties(combo, self.properties_to_hit_more,
+                                                                      self.hit_hashes_to_hit_more)
+                    fp_hit_hashes = self.get_hit_hashes_by_properties(combo, self.properties_to_hit_less,
+                                                                      self.hit_hashes_to_hit_less)
                     this_hit_cnt_to_hit_more = len(tp_hit_hashes)
                     this_hit_cnt_to_hit_less = len(fp_hit_hashes)
                     total_cnt_to_hit_more = len(self.properties_to_hit_more)
@@ -427,13 +429,8 @@ class ComboGenerator:
             integer = all_ints_to_check[sha256]
             if self.first_in_second(this_int, integer):
                 cnt += 1
-                # if self._get_property_combo(this_int) == {'23'}:
-                #     print(f'{sha256}, integer: {integer}, properties: {self._get_property_combo(integer)}')
                 if cnt > max_cnt:  # todo: uncomment after debugging
                     return True
-        # print(f'property_set_to_check: {self._get_property_combo(this_int)}, hit_count: {cnt}, max_cnt: {max_cnt}')
-        # if cnt > max_cnt:  # todo: delete after debugging
-        #     return True
         return False
 
     def hit_many_by_properties(self, property_set_to_check, all_property_sets_to_check, max_cnt):
@@ -442,21 +439,9 @@ class ComboGenerator:
             # self.logger.debug(f'check if property_set_to_check {property_set_to_check} a subset of {property_set}')
             if self.first_in_second_properties(property_set_to_check, property_set):
                 cnt += 1
-                # if property_set_to_check == {'23'}:
-                #     print(f'{sha256}, properties: {property_set}, integer: {self._get_integer(property_set)}')
-                #     print(f'fcea97e494944748e2e0bef5817f49708518aea11228806674e407f627c824b7, properties: {all_property_sets_to_check["fcea97e494944748e2e0bef5817f49708518aea11228806674e407f627c824b7"]}')
                 if cnt > max_cnt:  # todo: uncomment after debugging
                     return True
-        # print(f'property_set_to_check: {property_set_to_check}, hit_count: {cnt}, max_cnt: {max_cnt}')
-        # if cnt > max_cnt:  # todo: delete after debugging
-        #     return True
         return False
-
-    # def get_hit_count(self, full_int, all_ints_to_check, hit_hashes_already, hashes_to_check_by_combo=None):
-    #     this_hit_hashes = self.get_hit_hashes(full_int, all_ints_to_check,
-    #                                           hashes_to_check_by_combo=hashes_to_check_by_combo)
-    #     hit_hashes_already.update(this_hit_hashes)
-    #     return len(this_hit_hashes)
 
     def get_hit_hashes(self, full_int, all_ints_to_check, hashes_to_check_by_combo=None, hit_hashes_already=None):
         if hashes_to_check_by_combo is None:
@@ -489,8 +474,6 @@ class ComboGenerator:
             new_candidate = list(combo) + [property]
             if self.record_parent_hashes:
                 self.parent_combo['-'.join(sorted(new_candidate))] = '-'.join(sorted(combo))
-                # self.logger.debug(f'record_hashes_to_check_per_combo, '
-                #                   f'added parent combo {"-".join(combo)} for combo {"-".join(new_candidate)}')
             ret.append(new_candidate)
         return ret
 
@@ -502,8 +485,6 @@ class ComboGenerator:
                     continue
                 for candidate_int in self.pruned_cand_ints[length]:
                     if self.first_in_second(candidate_int, new_int):
-                        # self.logger.debug(f'Prune combo {new_cand} because it is a superset of previous pruned combo ')
-                                          # f'{self._get_property_combo(cand_int)}')
                         return True
             return False
         else:
@@ -512,8 +493,8 @@ class ComboGenerator:
                     continue
                 for property_set in property_set_lists:
                     if self.first_in_second_properties(property_set, new_candidate):
-                        self.logger.debug(f'Prune combo {new_candidate} because it is a superset of previous pruned combo '
-                                          f'{property_set}')
+                        self.logger.debug(f'Prune combo {new_candidate} '
+                                          f'because it is a superset of previous pruned combo {property_set}')
                         return True
             return False
 
@@ -526,7 +507,6 @@ class ComboGenerator:
     def _get_integer(self, properties):
         ret = 0
         for b in properties:
-            # b = misc.get_property_from_combo_property(b)
             if b not in self.property_index_mapping:
                 return -1
             ret |= 1 << self.property_index_mapping[b]
