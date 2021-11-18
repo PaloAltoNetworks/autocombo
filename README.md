@@ -4,7 +4,7 @@ Python 3
 ## Dataset
 *./dataset/property_lists_raw* folder contains a couple of example files. 
 
-**To get the complete dataset, please email data-set@paloaltonetworks.com**
+**To get the complete dataset, please email data-sets@paloaltonetworks.com**
 
 
 ## Dataset Preparation
