@@ -1,3 +1,11 @@
+## Introduction
+This repository contains the demo code and dataset used in our paper [AutoCombo](https://dl.acm.org/doi/abs/10.1145/3459637.3481896). 
+
+To use the code and/or dataset, please kindly cite our paper:
+
+_Min Du, Wenjun Hu, and William Hewlett. "AutoCombo: Automatic Malware Signature Generation Through Combination Rule Mining." In Proceedings of the 30th ACM International Conference on Information & Knowledge Management, pp. 3777-3786. 2021._
+
+
 ## Prerequisites
 Python 3
 
